@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Excel Bridge Preview</title>
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    body { display: flex; gap: 16px; align-items: flex-start; padding: 16px; }
+    .pane { width: var(--pane, 340px); flex: none; border: 1px solid var(--border); border-radius: 8px; background: var(--page); resize: horizontal; overflow: auto; }
+    .sheet { flex: 1; min-width: 220px; font-size: 12px; color: var(--text-2); }
+    .sheet h1 { font-size: 14px; color: var(--text); margin: 0 0 8px; }
+    .sheet pre { white-space: pre-wrap; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px; max-height: 60vh; overflow: auto; }
+    .sheet .row { margin-bottom: 8px; }
+    @media (max-width: 700px) { body { flex-direction: column; } .pane { width: 100%; } }
+  </style>
+</head>
+<body>
+  <div class="pane"><main id="app"><p class="hint">Loading…</p></main></div>
+  <div class="sheet">
+    <h1>Preview of the Excel side</h1>
+    <div class="row">
+      <button class="btn" data-w="340px">Narrow pane</button>
+      <button class="btn" data-w="640px">Wide pane</button>
+      <button class="btn" id="theme">Switch theme</button>
+    </div>
+    <p id="visible">Visible rows on the sheet: 3,000 of 3,000</p>
+    <pre id="log">Sheet filter calls appear here when "Filter the sheet too" is on.</pre>
+  </div>
+  <script type="module">
+    import { start } from '../js/app.js';
+    import { createMockBridge } from './mock-bridge.js';
+    const log = document.getElementById('log');
+    const visible = document.getElementById('visible');
+    const bridge = await createMockBridge({
+      onFilter(call) {
+        visible.textContent = `Visible rows on the sheet: ${call.kept.toLocaleString('en-GB')} of ${call.total.toLocaleString('en-GB')}`;
+        const { kept, total, ...rest } = call;
+        log.textContent = JSON.stringify(rest, null, 1) + '\n\n' + log.textContent;
+      },
+    });
+    window.bridge = bridge;
+    start(bridge);
+    for (const b of document.querySelectorAll('[data-w]')) {
+      b.addEventListener('click', () => document.querySelector('.pane').style.setProperty('--pane', b.dataset.w));
+    }
+    document.getElementById('theme').addEventListener('click', () => {
+      const root = document.documentElement;
+      const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      root.dataset.theme = dark ? 'light' : 'dark';
+    });
+  </script>
+</body>
+</html>

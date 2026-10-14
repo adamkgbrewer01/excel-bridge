@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Excel Bridge</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app"><p class="hint">Loading…</p></main>
+  <script type="module">
+    import { start } from './js/app.js';
+    import { createExcelBridge } from './js/excel-bridge.js';
+    Office.onReady((info) => {
+      if (info.host === Office.HostType.Excel) {
+        start(createExcelBridge());
+      } else {
+        const app = document.getElementById('app');
+        app.replaceChildren();
+        const box = document.createElement('div');
+        box.className = 'notice';
+        box.innerHTML = '<h2>Open this inside Excel</h2><p>Excel Bridge runs as a panel in Excel. To try it in a browser, open dev/dev.html.</p>';
+        app.append(box);
+      }
+    });
+  </script>
+</body>
+</html>
